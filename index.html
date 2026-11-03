@@ -2,14 +2,14 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>방위사업청(DAPA) 전국 방산혁신클러스터 & 체계기업 3D 생태계 상황판</title>
   <style>
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
     :root {
       --bg-deep: #040914;
-      --bg-panel: rgba(8, 20, 42, 0.84);
+      --bg-panel: rgba(8, 20, 42, 0.88);
       --border-cyan: rgba(0, 229, 255, 0.35);
       --cyan: #00e5ff;
       --blue: #2979ff;
@@ -26,6 +26,7 @@
       margin: 0;
       padding: 0;
       user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
@@ -35,6 +36,7 @@
       overflow: hidden;
       width: 100vw;
       height: 100vh;
+      touch-action: none;
     }
 
     #canvas-container {
@@ -43,6 +45,14 @@
       width: 100%;
       height: 100%;
       z-index: 1;
+      touch-action: none;
+    }
+
+    #canvas-container canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
     }
 
     /* Tactical HUD Grid Overlay */
@@ -611,6 +621,7 @@
 
     ::-webkit-scrollbar {
       width: 5px;
+      height: 5px;
     }
     ::-webkit-scrollbar-track {
       background: rgba(0, 0, 0, 0.2);
@@ -618,6 +629,161 @@
     ::-webkit-scrollbar-thumb {
       background: rgba(0, 229, 255, 0.35);
       border-radius: 4px;
+    }
+
+    /* Mobile Header Buttons & Quick Bar (Hidden on Desktop) */
+    .mobile-header-actions {
+      display: none;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .mob-toggle-btn {
+      background: rgba(0, 229, 255, 0.16);
+      border: 1px solid var(--cyan);
+      color: #fff;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+
+    .mob-toggle-btn.active {
+      background: var(--cyan);
+      color: #031024;
+    }
+
+    .mobile-panel-close {
+      display: none;
+      width: 100%;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      background: rgba(255, 82, 82, 0.18);
+      border: 1px solid rgba(255, 82, 82, 0.55);
+      color: #ffccd5;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .mobile-hub-bar {
+      display: none;
+    }
+
+    /* =========================================================================
+       모바일 & 태블릿 반응형 레이아웃 (화면이 패널에 가려지지 않고 3D 터치 조작 100% 보장)
+       ========================================================================= */
+    @media (max-width: 960px) {
+      .top-header {
+        top: 8px;
+        left: 8px;
+        right: 8px;
+        height: 54px;
+        padding: 0 12px;
+      }
+
+      .dapa-emblem {
+        width: 34px;
+        height: 34px;
+        font-size: 10px;
+      }
+
+      .title-box h1 {
+        font-size: 13.5px;
+      }
+
+      .badge-live,
+      .title-box p,
+      .header-kpis,
+      .bottom-bar {
+        display: none !important;
+      }
+
+      .mobile-header-actions {
+        display: flex;
+      }
+
+      /* 모바일에서는 기본적으로 좌·우 패널을 숨겨서 중앙 3D 지도를 한 손가락/두 손가락으로 자유롭게 회전·확대 가능하게 함 */
+      .left-panel,
+      .right-panel {
+        top: 68px;
+        left: 8px;
+        right: 8px;
+        width: auto;
+        max-height: calc(100vh - 140px);
+        z-index: 35;
+        display: none;
+      }
+
+      .left-panel.mobile-open,
+      .right-panel.mobile-open {
+        display: flex;
+      }
+
+      .mobile-panel-close {
+        display: block;
+      }
+
+      /* 모바일 하단 거점 빠른 선택 가로 스크롤 바 */
+      .mobile-hub-bar {
+        display: flex;
+        position: absolute;
+        bottom: 10px;
+        left: 8px;
+        right: 8px;
+        z-index: 20;
+        gap: 7px;
+        overflow-x: auto;
+        padding: 8px 10px;
+        background: rgba(6, 16, 35, 0.88);
+        border: 1px solid var(--border-cyan);
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .mob-hub-chip {
+        flex-shrink: 0;
+        padding: 7px 11px;
+        border-radius: 20px;
+        background: rgba(15, 38, 74, 0.85);
+        border: 1px solid rgba(0, 229, 255, 0.3);
+        color: #eaf4ff;
+        font-size: 11.5px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        font-family: inherit;
+      }
+
+      .mob-hub-chip.selected {
+        background: rgba(0, 229, 255, 0.28);
+        border-color: var(--cyan);
+        color: #fff;
+        box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+      }
+
+      /* 모바일 화면에서 3D 마커 라벨 크기 최적화 */
+      .label-card {
+        padding: 3px 6px;
+      }
+      .label-name {
+        font-size: 10px;
+      }
+      .label-sub {
+        display: none;
+      }
+      .label-stem {
+        height: 8px;
+      }
     }
   </style>
 </head>
@@ -633,7 +799,7 @@
       <div class="dapa-emblem">DAPA</div>
       <div class="title-box">
         <h1>
-          방위사업청 전국 방산혁신클러스터 & 체계기업 3D 생태계 맵
+          방위사업청 방산혁신클러스터 3D 생태계 맵
           <span class="badge-live">3D TACTICAL VIEW</span>
         </h1>
         <p>Defense Acquisition Program Administration · National Defense Industry Cluster & Supply Chain Network</p>
@@ -657,10 +823,16 @@
         <div class="kpi-value">79.4<span>%</span></div>
       </div>
     </div>
+    <!-- Mobile Action Buttons -->
+    <div class="mobile-header-actions">
+      <button class="mob-toggle-btn" id="mob-btn-controls">⚙️ 제어·필터</button>
+      <button class="mob-toggle-btn" id="mob-btn-detail">📋 상세브리핑</button>
+    </div>
   </header>
 
   <!-- Left Panel -->
-  <aside class="left-panel">
+  <aside class="left-panel" id="left-panel">
+    <button class="mobile-panel-close" id="close-left-panel">✕ 닫기 (3D 지도 터치 화면으로 돌아가기)</button>
     <div class="panel-card">
       <div class="panel-title">
         <span>무기체계 분야별 필터</span>
@@ -727,18 +899,22 @@
   </aside>
 
   <!-- Right Panel -->
-  <aside class="right-panel">
+  <aside class="right-panel" id="right-panel">
+    <button class="mobile-panel-close" id="close-right-panel">✕ 브리핑 닫기 (3D 지도 조작하기)</button>
     <div class="panel-card" id="detail-card">
       <!-- Dynamic Content Injected by JS -->
     </div>
   </aside>
 
+  <!-- Mobile Bottom Quick Hub Selector Bar -->
+  <div class="mobile-hub-bar" id="mobile-hub-bar"></div>
+
   <!-- Bottom Help Bar -->
   <div class="bottom-bar">
-    <span><strong>좌클릭 드래그</strong> 3D 회전</span>
-    <span><strong>우클릭 드래그</strong> 화면 이동(Pan)</span>
-    <span><strong>마우스 휠</strong> 줌 인/아웃</span>
-    <span><strong>마커·지역 클릭</strong> 거점 상세 브리핑 및 카메라 포커스</span>
+    <span><strong>좌클릭/한손가락 드래그</strong> 3D 회전</span>
+    <span><strong>우클릭/두손가락 드래그</strong> 화면 이동(Pan)</span>
+    <span><strong>휠/두손가락 핀치</strong> 줌 인/아웃</span>
+    <span><strong>마커·지역 터치</strong> 거점 상세 브리핑 및 카메라 포커스</span>
   </div>
 
   <!-- Three.js & OrbitControls via CDN -->
@@ -1124,8 +1300,9 @@
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x040914, 0.0085);
 
+    const isMobileView = () => window.innerWidth <= 960;
     const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 500);
-    const DEFAULT_CAM_POS = new THREE.Vector3(0, 58, 62);
+    const DEFAULT_CAM_POS = new THREE.Vector3(0, isMobileView() ? 78 : 58, isMobileView() ? 82 : 62);
     const DEFAULT_TARGET = new THREE.Vector3(0, 0, 2);
     camera.position.copy(DEFAULT_CAM_POS);
 
@@ -1134,15 +1311,31 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.15;
+    renderer.domElement.style.touchAction = 'none';
     container.appendChild(renderer.domElement);
 
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.target.copy(DEFAULT_TARGET);
     controls.enableDamping = true;
     controls.dampingFactor = 0.06;
+    controls.enableRotate = true;
+    controls.enableZoom = true;
+    controls.enablePan = true;
+    controls.rotateSpeed = 0.85;
+    controls.zoomSpeed = 1.0;
+    controls.panSpeed = 0.85;
     controls.maxPolarAngle = Math.PI / 2.15;
-    controls.minDistance = 16;
-    controls.maxDistance = 125;
+    controls.minDistance = 14;
+    controls.maxDistance = 155;
+    controls.touches = {
+      ONE: THREE.TOUCH.ROTATE,
+      TWO: THREE.TOUCH.DOLLY_PAN
+    };
+
+    // 사용자가 화면을 터치하거나 마우스로 조작하기 시작하면 자동 카메라 이동 애니메이션을 즉시 중단하여 조작권 보장
+    controls.addEventListener('start', () => {
+      cameraAnim = null;
+    });
 
     // 조명 설정
     const ambientLight = new THREE.AmbientLight(0x8bb8ff, 0.75);
@@ -1510,10 +1703,66 @@
     let autoTourTimer = null;
     let autoTourIndex = 0;
 
-    // 좌측 거점 리스트 렌더링
+    const leftPanelEl = document.getElementById('left-panel');
+    const rightPanelEl = document.getElementById('right-panel');
+    const mobBtnControls = document.getElementById('mob-btn-controls');
+    const mobBtnDetail = document.getElementById('mob-btn-detail');
+
+    function closeMobilePanels() {
+      leftPanelEl.classList.remove('mobile-open');
+      rightPanelEl.classList.remove('mobile-open');
+      mobBtnControls.classList.remove('active');
+      mobBtnDetail.classList.remove('active');
+    }
+
+    mobBtnControls.addEventListener('click', () => {
+      const isOpen = leftPanelEl.classList.contains('mobile-open');
+      closeMobilePanels();
+      if (!isOpen) {
+        leftPanelEl.classList.add('mobile-open');
+        mobBtnControls.classList.add('active');
+      }
+    });
+
+    mobBtnDetail.addEventListener('click', () => {
+      const isOpen = rightPanelEl.classList.contains('mobile-open');
+      closeMobilePanels();
+      if (!isOpen) {
+        rightPanelEl.classList.add('mobile-open');
+        mobBtnDetail.classList.add('active');
+      }
+    });
+
+    document.getElementById('close-left-panel').addEventListener('click', closeMobilePanels);
+    document.getElementById('close-right-panel').addEventListener('click', closeMobilePanels);
+
+    // 좌측 거점 리스트 및 모바일 하단 거점 빠른 선택 바 렌더링
     function renderHubList() {
       const listEl = document.getElementById('hub-list');
+      const mobBarEl = document.getElementById('mobile-hub-bar');
       listEl.innerHTML = '';
+      mobBarEl.innerHTML = '';
+
+      // 모바일 바: 전체 초기화 & 독도 버튼
+      const resetChip = document.createElement('button');
+      resetChip.className = 'mob-hub-chip';
+      resetChip.innerHTML = '🔄 전체조망';
+      resetChip.addEventListener('click', () => {
+        closeMobilePanels();
+        animateCameraTo(DEFAULT_CAM_POS, DEFAULT_TARGET);
+      });
+      mobBarEl.appendChild(resetChip);
+
+      const dokdoChip = document.createElement('button');
+      dokdoChip.className = 'mob-hub-chip';
+      dokdoChip.innerHTML = '🏝️ 독도';
+      dokdoChip.addEventListener('click', () => {
+        closeMobilePanels();
+        const target = new THREE.Vector3(dokdoPos.x - 4, 1.0, dokdoPos.z);
+        const camPos = new THREE.Vector3(dokdoPos.x - 6, 22, dokdoPos.z + 20);
+        animateCameraTo(camPos, target);
+      });
+      mobBarEl.appendChild(dokdoChip);
 
       DEFENSE_HUBS.forEach((hub) => {
         if (activeSector !== 'all' && hub.sector !== activeSector) return;
@@ -1530,8 +1779,21 @@
           </div>
           <span class="hub-tag">${hub.stats.companies}</span>
         `;
-        item.addEventListener('click', () => selectHub(hub.id, true));
+        item.addEventListener('click', () => {
+          closeMobilePanels();
+          selectHub(hub.id, true);
+        });
         listEl.appendChild(item);
+
+        // 모바일 하단 칩 추가
+        const chip = document.createElement('button');
+        chip.className = `mob-hub-chip ${hub.id === selectedHubId ? 'selected' : ''}`;
+        chip.innerHTML = `<span class="dot" style="background:${SECTOR_HEX[hub.sector]}"></span>${hub.shortName}`;
+        chip.addEventListener('click', () => {
+          closeMobilePanels();
+          selectHub(hub.id, true);
+        });
+        mobBarEl.appendChild(chip);
       });
     }
 
@@ -1701,13 +1963,20 @@
     });
 
     // =========================================================================
-    // 9. 마우스 레이캐스팅 (클릭 및 호버 이벤트)
+    // 9. 마우스 & 모바일 터치 레이캐스팅 (클릭·탭 및 호버 이벤트)
     // =========================================================================
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
     let hoveredProvince = null;
+    let pointerDownPos = { x: 0, y: 0 };
 
-    window.addEventListener('mousemove', (e) => {
+    window.addEventListener('pointerdown', (e) => {
+      pointerDownPos.x = e.clientX;
+      pointerDownPos.y = e.clientY;
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (e.pointerType === 'touch') return; // 모바일 터치 드래그 시 불필요한 툴팁 방지
       mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
 
@@ -1739,10 +2008,24 @@
       }
     });
 
-    window.addEventListener('click', (e) => {
-      if (e.target.closest('.left-panel') || e.target.closest('.right-panel') || e.target.closest('.top-header')) {
+    window.addEventListener('pointerup', (e) => {
+      if (
+        e.target.closest('.left-panel') ||
+        e.target.closest('.right-panel') ||
+        e.target.closest('.top-header') ||
+        e.target.closest('.mobile-hub-bar') ||
+        e.target.closest('.map-label')
+      ) {
         return;
       }
+
+      // 드래그 회전과 단순 탭(클릭) 구분 (이동 거리가 10px 이하일 때만 클릭으로 판정)
+      const moveDist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
+      if (moveDist > 10) return;
+
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
       raycaster.setFromCamera(mouse, camera);
       const intersects = raycaster.intersectObjects(clickableMeshes, false);
       if (intersects.length > 0) {
