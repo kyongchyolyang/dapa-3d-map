@@ -36,7 +36,6 @@
       overflow: hidden;
       width: 100vw;
       height: 100vh;
-      touch-action: none;
     }
 
     #canvas-container {
@@ -200,6 +199,13 @@
       z-index: 10;
       overflow-y: auto;
       padding-right: 4px;
+      touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .left-panel.panel-collapsed,
+    .right-panel.panel-collapsed {
+      display: none !important;
     }
 
     .panel-card {
@@ -274,6 +280,8 @@
       max-height: 290px;
       overflow-y: auto;
       padding-right: 4px;
+      touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
     }
 
     .hub-item {
@@ -383,6 +391,8 @@
       flex-direction: column;
       gap: 12px;
       overflow-y: auto;
+      touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
     }
 
     .detail-header {
@@ -521,8 +531,7 @@
     .map-label {
       position: absolute;
       transform: translate(-50%, -100%);
-      pointer-events: auto;
-      cursor: pointer;
+      pointer-events: none;
       transition: opacity 0.2s, transform 0.2s;
     }
 
@@ -631,11 +640,12 @@
       border-radius: 4px;
     }
 
-    /* Mobile Header Buttons & Quick Bar (Hidden on Desktop) */
+    /* Header Toggle Buttons & Panel Close Button (Available on all devices) */
     .mobile-header-actions {
-      display: none;
+      display: flex;
       gap: 6px;
       align-items: center;
+      margin-left: 12px;
     }
 
     .mob-toggle-btn {
@@ -657,29 +667,32 @@
     }
 
     .mobile-panel-close {
-      display: none;
+      display: block;
       width: 100%;
-      padding: 8px 12px;
-      margin-bottom: 10px;
-      background: rgba(255, 82, 82, 0.18);
-      border: 1px solid rgba(255, 82, 82, 0.55);
-      color: #ffccd5;
+      padding: 9px 12px;
+      margin-bottom: 8px;
+      background: rgba(255, 82, 82, 0.22);
+      border: 1px solid rgba(255, 82, 82, 0.65);
+      color: #ffe0e6;
       border-radius: 6px;
       font-size: 12px;
       font-weight: 700;
       text-align: center;
       cursor: pointer;
       font-family: inherit;
+      flex-shrink: 0;
     }
 
     .mobile-hub-bar {
       display: none;
+      touch-action: pan-x;
+      -webkit-overflow-scrolling: touch;
     }
 
     /* =========================================================================
-       모바일 & 태블릿 반응형 레이아웃 (화면이 패널에 가려지지 않고 3D 터치 조작 100% 보장)
+       모바일 & 태블릿 반응형 레이아웃 (데스크톱 보기 모드나 가로모드 터치 기기까지 모두 대응)
        ========================================================================= */
-    @media (max-width: 960px) {
+    @media (max-width: 1150px), (hover: none), (pointer: coarse) {
       .top-header {
         top: 8px;
         left: 8px;
@@ -705,11 +718,6 @@
         display: none !important;
       }
 
-      .mobile-header-actions {
-        display: flex;
-      }
-
-      /* 모바일에서는 기본적으로 좌·우 패널을 숨겨서 중앙 3D 지도를 한 손가락/두 손가락으로 자유롭게 회전·확대 가능하게 함 */
       .left-panel,
       .right-panel {
         top: 68px;
@@ -718,16 +726,6 @@
         width: auto;
         max-height: calc(100vh - 140px);
         z-index: 35;
-        display: none;
-      }
-
-      .left-panel.mobile-open,
-      .right-panel.mobile-open {
-        display: flex;
-      }
-
-      .mobile-panel-close {
-        display: block;
       }
 
       /* 모바일 하단 거점 빠른 선택 가로 스크롤 바 */
@@ -745,6 +743,7 @@
         border: 1px solid var(--border-cyan);
         border-radius: 10px;
         backdrop-filter: blur(10px);
+        touch-action: pan-x;
         -webkit-overflow-scrolling: touch;
       }
 
@@ -1708,33 +1707,52 @@
     const mobBtnControls = document.getElementById('mob-btn-controls');
     const mobBtnDetail = document.getElementById('mob-btn-detail');
 
-    function closeMobilePanels() {
-      leftPanelEl.classList.remove('mobile-open');
-      rightPanelEl.classList.remove('mobile-open');
-      mobBtnControls.classList.remove('active');
-      mobBtnDetail.classList.remove('active');
+    const isTouchOrSmallScreen = () =>
+      ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 1150);
+
+    function syncHeaderButtons() {
+      mobBtnControls.classList.toggle('active', !leftPanelEl.classList.contains('panel-collapsed'));
+      mobBtnDetail.classList.toggle('active', !rightPanelEl.classList.contains('panel-collapsed'));
     }
 
-    mobBtnControls.addEventListener('click', () => {
-      const isOpen = leftPanelEl.classList.contains('mobile-open');
-      closeMobilePanels();
-      if (!isOpen) {
-        leftPanelEl.classList.add('mobile-open');
-        mobBtnControls.classList.add('active');
+    function closeMobilePanels() {
+      if (isTouchOrSmallScreen()) {
+        leftPanelEl.classList.add('panel-collapsed');
+        rightPanelEl.classList.add('panel-collapsed');
+        syncHeaderButtons();
       }
+    }
+
+    // 모바일·태블릿·터치 기기에서는 처음 접속 시 좌·우 메뉴를 모두 접어두어 3D 지도를 즉시 자유롭게 회전 가능하게 설정
+    if (isTouchOrSmallScreen()) {
+      leftPanelEl.classList.add('panel-collapsed');
+      rightPanelEl.classList.add('panel-collapsed');
+    }
+    syncHeaderButtons();
+
+    mobBtnControls.addEventListener('click', () => {
+      const willOpen = leftPanelEl.classList.contains('panel-collapsed');
+      if (isTouchOrSmallScreen()) rightPanelEl.classList.add('panel-collapsed');
+      leftPanelEl.classList.toggle('panel-collapsed', !willOpen);
+      syncHeaderButtons();
     });
 
     mobBtnDetail.addEventListener('click', () => {
-      const isOpen = rightPanelEl.classList.contains('mobile-open');
-      closeMobilePanels();
-      if (!isOpen) {
-        rightPanelEl.classList.add('mobile-open');
-        mobBtnDetail.classList.add('active');
-      }
+      const willOpen = rightPanelEl.classList.contains('panel-collapsed');
+      if (isTouchOrSmallScreen()) leftPanelEl.classList.add('panel-collapsed');
+      rightPanelEl.classList.toggle('panel-collapsed', !willOpen);
+      syncHeaderButtons();
     });
 
-    document.getElementById('close-left-panel').addEventListener('click', closeMobilePanels);
-    document.getElementById('close-right-panel').addEventListener('click', closeMobilePanels);
+    document.getElementById('close-left-panel').addEventListener('click', () => {
+      leftPanelEl.classList.add('panel-collapsed');
+      syncHeaderButtons();
+    });
+
+    document.getElementById('close-right-panel').addEventListener('click', () => {
+      rightPanelEl.classList.add('panel-collapsed');
+      syncHeaderButtons();
+    });
 
     // 좌측 거점 리스트 및 모바일 하단 거점 빠른 선택 바 렌더링
     function renderHubList() {
@@ -2013,16 +2031,34 @@
         e.target.closest('.left-panel') ||
         e.target.closest('.right-panel') ||
         e.target.closest('.top-header') ||
-        e.target.closest('.mobile-hub-bar') ||
-        e.target.closest('.map-label')
+        e.target.closest('.mobile-hub-bar')
       ) {
         return;
       }
 
-      // 드래그 회전과 단순 탭(클릭) 구분 (이동 거리가 10px 이하일 때만 클릭으로 판정)
+      // 드래그 회전과 단순 탭(클릭) 구분 (이동 거리가 12px 이하일 때만 클릭으로 판정)
       const moveDist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
-      if (moveDist > 10) return;
+      if (moveDist > 12) return;
 
+      // 1) 플로팅 라벨 카드 영역 탭 여부 먼저 확인 (라벨은 pointer-events: none이므로 드래그 회전을 방해하지 않음)
+      for (const [hubId, obj] of Object.entries(hubObjects)) {
+        if (!obj.group.visible) continue;
+        const cardEl = document.getElementById(`label-card-${hubId}`);
+        if (cardEl) {
+          const rect = cardEl.getBoundingClientRect();
+          if (
+            e.clientX >= rect.left &&
+            e.clientX <= rect.right &&
+            e.clientY >= rect.top &&
+            e.clientY <= rect.bottom
+          ) {
+            selectHub(hubId, true);
+            return;
+          }
+        }
+      }
+
+      // 2) 3D 빛 기둥 및 비콘 레이캐스팅 확인
       mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
 
