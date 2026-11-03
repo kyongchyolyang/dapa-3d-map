@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>방위사업청(DAPA) 전국 방산혁신클러스터 & 체계기업 3D 생태계 상황판</title>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+    :root {
+      --bg-deep: #040914;
+      --bg-panel: rgba(8, 20, 42, 0.84);
+      --border-cyan: rgba(0, 229, 255, 0.35);
+      --cyan: #00e5ff;
+      --blue: #2979ff;
+      --gold: #ffb300;
+      --emerald: #00e676;
+      --purple: #b388ff;
+      --coral: #ff5252;
+      --text-main: #eaf4ff;
+      --text-sub: #8ab4e1;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif;
+      background: radial-gradient(circle at 50% 45%, #0c2244 0%, #050d1d 60%, #02060d 100%);
+      color: var(--text-main);
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #canvas-container {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* Tactical HUD Grid Overlay */
+    .hud-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(0, 229, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 229, 255, 0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.85);
+      z-index: 2;
+    }
+
+    /* Top Header */
+    .top-header {
+      position: absolute;
+      top: 16px;
+      left: 20px;
+      right: 20px;
+      height: 68px;
+      background: linear-gradient(90deg, rgba(6, 18, 38, 0.92) 0%, rgba(10, 30, 62, 0.85) 50%, rgba(6, 18, 38, 0.92) 100%);
+      border: 1px solid var(--border-cyan);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 10;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 229, 255, 0.12);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .dapa-emblem {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #0d3b7a 0%, #051633 100%);
+      border: 2px solid var(--cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: -0.5px;
+      color: var(--cyan);
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.45);
+      position: relative;
+    }
+
+    .dapa-emblem::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 1px dashed rgba(0, 229, 255, 0.5);
+      animation: spin 16s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .title-box h1 {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge-live {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: rgba(0, 230, 118, 0.18);
+      border: 1px solid var(--emerald);
+      color: var(--emerald);
+      letter-spacing: 0.5px;
+    }
+
+    .title-box p {
+      font-size: 12px;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+
+    .header-kpis {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .kpi-item {
+      text-align: right;
+      padding-right: 18px;
+      border-right: 1px solid rgba(0, 229, 255, 0.18);
+    }
+
+    .kpi-item:last-child {
+      border-right: none;
+      padding-right: 0;
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    .kpi-value {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--cyan);
+      margin-top: 2px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .kpi-value span {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-main);
+      margin-left: 2px;
+    }
+
+    /* Left Panel: Filters & Controls */
+    .left-panel {
+      position: absolute;
+      top: 100px;
+      left: 20px;
+      width: 310px;
+      max-height: calc(100vh - 125px);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 10;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .panel-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-cyan);
+      border-radius: 10px;
+      padding: 16px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+    }
+
+    .panel-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+      padding-bottom: 8px;
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+
+    .filter-btn {
+      background: rgba(13, 35, 68, 0.7);
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      color: var(--text-main);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .filter-btn:hover {
+      border-color: var(--cyan);
+      background: rgba(0, 229, 255, 0.14);
+    }
+
+    .filter-btn.active {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.28), rgba(41, 121, 255, 0.28));
+      border-color: var(--cyan);
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
+      color: #fff;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Hub Quick List */
+    .hub-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 290px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .hub-item {
+      padding: 9px 11px;
+      border-radius: 6px;
+      background: rgba(11, 29, 58, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+      transition: all 0.18s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .hub-item:hover {
+      background: rgba(0, 229, 255, 0.12);
+      border-color: rgba(0, 229, 255, 0.45);
+      transform: translateX(3px);
+    }
+
+    .hub-item.selected {
+      background: rgba(0, 229, 255, 0.2);
+      border-color: var(--cyan);
+      box-shadow: inset 3px 0 0 var(--cyan);
+    }
+
+    .hub-item-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .hub-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .hub-role {
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+
+    .hub-tag {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--cyan);
+      white-space: nowrap;
+    }
+
+    /* Control Toggles */
+    .control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .action-btn {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 6px;
+      background: rgba(15, 38, 74, 0.75);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      color: var(--text-main);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .action-btn:hover {
+      background: rgba(0, 229, 255, 0.16);
+      border-color: var(--cyan);
+    }
+
+    .action-btn.active {
+      background: rgba(0, 229, 255, 0.22);
+      border-color: var(--cyan);
+      color: #fff;
+    }
+
+    .status-pill {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: rgba(0, 229, 255, 0.2);
+      color: var(--cyan);
+    }
+
+    /* Right Panel: Detailed Hub Briefing */
+    .right-panel {
+      position: absolute;
+      top: 100px;
+      right: 20px;
+      width: 360px;
+      max-height: calc(100vh - 125px);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+    }
+
+    .detail-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .cluster-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-bottom: 6px;
+      background: rgba(255, 179, 0, 0.18);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+    }
+
+    .detail-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.25;
+    }
+
+    .detail-subtitle {
+      font-size: 12px;
+      color: var(--text-sub);
+      margin-top: 4px;
+      line-height: 1.45;
+    }
+
+    .metric-boxes {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 14px 0;
+    }
+
+    .metric-box {
+      background: rgba(5, 15, 32, 0.75);
+      border: 1px solid rgba(0, 229, 255, 0.2);
+      border-radius: 6px;
+      padding: 9px 8px;
+      text-align: center;
+    }
+
+    .metric-box .m-label {
+      font-size: 10px;
+      color: var(--text-sub);
+    }
+
+    .metric-box .m-val {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--cyan);
+      margin-top: 3px;
+    }
+
+    .section-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--cyan);
+      margin: 12px 0 7px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tag-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .company-tag {
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 4px 9px;
+      border-radius: 5px;
+      background: rgba(41, 121, 255, 0.18);
+      border: 1px solid rgba(41, 121, 255, 0.45);
+      color: #d8eaff;
+    }
+
+    .weapon-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .weapon-item {
+      background: rgba(6, 17, 36, 0.8);
+      border-left: 3px solid var(--cyan);
+      padding: 7px 10px;
+      border-radius: 0 5px 5px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .weapon-item span.w-stage {
+      font-size: 10.5px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: rgba(0, 230, 118, 0.15);
+      color: var(--emerald);
+      font-weight: 600;
+    }
+
+    .supply-chain-note {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      background: rgba(0, 229, 255, 0.07);
+      border: 1px dashed rgba(0, 229, 255, 0.35);
+      font-size: 11.5px;
+      line-height: 1.5;
+      color: #c7e2ff;
+    }
+
+    /* 3D Floating HTML Markers */
+    #labels-container {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 5;
+      overflow: hidden;
+    }
+
+    .map-label {
+      position: absolute;
+      transform: translate(-50%, -100%);
+      pointer-events: auto;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+
+    .map-label:hover {
+      z-index: 30;
+      transform: translate(-50%, -105%) scale(1.06);
+    }
+
+    .label-card {
+      background: rgba(6, 16, 35, 0.88);
+      border: 1px solid var(--cyan);
+      border-radius: 6px;
+      padding: 4px 8px;
+      white-space: nowrap;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.65), 0 0 10px rgba(0, 229, 255, 0.25);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .label-card.selected {
+      background: rgba(0, 48, 90, 0.95);
+      border-width: 1.5px;
+      box-shadow: 0 0 18px rgba(0, 229, 255, 0.65);
+    }
+
+    .label-name {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .label-sub {
+      font-size: 10px;
+      color: var(--cyan);
+      font-weight: 600;
+    }
+
+    .label-stem {
+      width: 1px;
+      height: 14px;
+      background: linear-gradient(to bottom, var(--cyan), transparent);
+      margin: 0 auto;
+    }
+
+    .province-label {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: rgba(175, 215, 255, 0.55);
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    /* Bottom Help Bar */
+    .bottom-bar {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(6, 16, 34, 0.85);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      border-radius: 30px;
+      padding: 8px 20px;
+      font-size: 12px;
+      color: var(--text-sub);
+      z-index: 10;
+      display: flex;
+      gap: 18px;
+      align-items: center;
+      backdrop-filter: blur(8px);
+      white-space: nowrap;
+    }
+
+    .bottom-bar span strong {
+      color: var(--cyan);
+    }
+
+    /* Tooltip on Province Hover */
+    #hover-tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: rgba(4, 14, 30, 0.92);
+      border: 1px solid var(--cyan);
+      border-radius: 6px;
+      padding: 7px 11px;
+      font-size: 12px;
+      color: #fff;
+      z-index: 40;
+      display: none;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 229, 255, 0.35);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+  <div class="hud-overlay"></div>
+  <div id="labels-container"></div>
+  <div id="hover-tooltip"></div>
+
+  <!-- Top Header -->
+  <header class="top-header">
+    <div class="brand-group">
+      <div class="dapa-emblem">DAPA</div>
+      <div class="title-box">
+        <h1>
+          방위사업청 전국 방산혁신클러스터 & 체계기업 3D 생태계 맵
+          <span class="badge-live">3D TACTICAL VIEW</span>
+        </h1>
+        <p>Defense Acquisition Program Administration · National Defense Industry Cluster & Supply Chain Network</p>
+      </div>
+    </div>
+    <div class="header-kpis">
+      <div class="kpi-item">
+        <div class="kpi-label">방산혁신클러스터·핵심거점</div>
+        <div class="kpi-value">10<span>개 권역</span></div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-label">지정 방산업체·연구기관</div>
+        <div class="kpi-value">88<span>개 핵심체계</span></div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-label">국가 방산 생태계 협력사</div>
+        <div class="kpi-value">1,420<span>+ 소부장</span></div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-label">무기체계 국산화율(평균)</div>
+        <div class="kpi-value">79.4<span>%</span></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Left Panel -->
+  <aside class="left-panel">
+    <div class="panel-card">
+      <div class="panel-title">
+        <span>무기체계 분야별 필터</span>
+        <span style="font-size:11px; color:var(--text-sub);">SECTOR</span>
+      </div>
+      <div class="filter-grid" id="sector-filters">
+        <button class="filter-btn active" data-sector="all">
+          <span class="dot" style="background:#00e5ff"></span>전체 생태계
+        </button>
+        <button class="filter-btn" data-sector="command">
+          <span class="dot" style="background:#ffb300"></span>지휘·국방R&D
+        </button>
+        <button class="filter-btn" data-sector="land">
+          <span class="dot" style="background:#00e676"></span>기동·화력
+        </button>
+        <button class="filter-btn" data-sector="guided">
+          <span class="dot" style="background:#b388ff"></span>유도·방산전자
+        </button>
+        <button class="filter-btn" data-sector="aero">
+          <span class="dot" style="background:#00e5ff"></span>항공·우주
+        </button>
+        <button class="filter-btn" data-sector="naval">
+          <span class="dot" style="background:#2979ff"></span>함정·해양
+        </button>
+      </div>
+    </div>
+
+    <div class="panel-card">
+      <div class="panel-title">
+        <span>전국 주요 방산 거점 (클릭 이동)</span>
+        <span style="font-size:11px; color:var(--text-sub);">10 HUBS</span>
+      </div>
+      <div class="hub-list" id="hub-list"></div>
+    </div>
+
+    <div class="panel-card">
+      <div class="panel-title">
+        <span>3D 상황판 제어</span>
+        <span style="font-size:11px; color:var(--text-sub);">CONTROLS</span>
+      </div>
+      <div class="control-row">
+        <button class="action-btn active" id="btn-arcs">
+          <span>공급망·R&D 연계 아크 (3D Arc)</span>
+          <span class="status-pill" id="pill-arcs">ON</span>
+        </button>
+        <button class="action-btn" id="btn-extrude">
+          <span>시도별 방산 집적도 3D 입체고도 강조</span>
+          <span class="status-pill" id="pill-extrude">기본</span>
+        </button>
+        <button class="action-btn" id="btn-tour">
+          <span>전국 거점 자동 브리핑 투어</span>
+          <span class="status-pill" id="pill-tour">OFF</span>
+        </button>
+        <button class="action-btn" id="btn-dokdo">
+          <span>울릉도·독도 영토 수호 마커 보기</span>
+          <span class="status-pill">이동</span>
+        </button>
+        <button class="action-btn" id="btn-reset">
+          <span>한반도 전체 조망 (카메라 초기화)</span>
+          <span class="status-pill">RESET</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Right Panel -->
+  <aside class="right-panel">
+    <div class="panel-card" id="detail-card">
+      <!-- Dynamic Content Injected by JS -->
+    </div>
+  </aside>
+
+  <!-- Bottom Help Bar -->
+  <div class="bottom-bar">
+    <span><strong>좌클릭 드래그</strong> 3D 회전</span>
+    <span><strong>우클릭 드래그</strong> 화면 이동(Pan)</span>
+    <span><strong>마우스 휠</strong> 줌 인/아웃</span>
+    <span><strong>마커·지역 클릭</strong> 거점 상세 브리핑 및 카메라 포커스</span>
+  </div>
+
+  <!-- Three.js & OrbitControls via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <script>
+    // =========================================================================
+    // 1. 방위사업청(DAPA) 전국 방산 거점 및 혁신클러스터 데이터
+    // =========================================================================
+    const SECTOR_COLORS = {
+      command: 0xffb300, // 지휘/R&D (골드)
+      land:    0x00e676, // 기동·화력 (에메랄드)
+      guided:  0xb388ff, // 유도·방산전자 (퍼플)
+      aero:    0x00e5ff, // 항공·우주 (시안)
+      naval:   0x2979ff  // 함정·해양 (블루)
+    };
+
+    const SECTOR_HEX = {
+      command: '#ffb300',
+      land:    '#00e676',
+      guided:  '#b388ff',
+      aero:    '#00e5ff',
+      naval:   '#2979ff'
+    };
+
+    const DEFENSE_HUBS = [
+      {
+        id: 'daejeon',
+        name: '대전 (정부대전청사·대덕특구)',
+        shortName: '대전 방위사업청·ADD',
+        sector: 'command',
+        sectorName: '방위사업 총괄 · 국방 R&D 허브',
+        badge: '방위사업청 본청 · 방산혁신클러스터 2호(드론)',
+        lat: 36.36,
+        lon: 127.38,
+        pillarHeight: 6.2,
+        stats: { companies: '240+개', share: 'R&D 48%', localRate: '86%' },
+        desc: '방위사업청(DAPA) 본청과 국방과학연구소(ADD)가 위치한 대한민국 방위력개선사업의 컨트롤타워이자 첨단 국방 R&D(드론·우주·유도·무인체계) 핵심 거점입니다.',
+        orgs: ['방위사업청(DAPA)', '국방과학연구소(ADD)', '한화에어로스페이스 R&D캠퍼스', 'LIG넥스원 대전하우스', '쎄트렉아이', '아이쓰리시스템'],
+        weapons: [
+          { name: '장거리 지대공 유도무기 (L-SAM)', stage: '체계개발 완료' },
+          { name: '초소형 위성체계 & 425 정찰위성', stage: '전력화 진행' },
+          { name: 'AI 기반 군집 드론·무인체계', stage: '선행·탐색개발' }
+        ],
+        supplyNote: 'ADD 국방 R&D 원천기술 → 창원(기동·화력), 구미(유도·레이더), 사천(항공우주), 울산·거제(함정) 체계기업으로 이전·연계'
+      },
+      {
+        id: 'changwon',
+        name: '창원·함안 (경남 국가산단)',
+        shortName: '창원 기동·화력 클러스터',
+        sector: 'land',
+        sectorName: '기동·화력 · 방산 중공업',
+        badge: '방산혁신클러스터 1호 (전국 최대 지상무기 거점)',
+        lat: 35.22,
+        lon: 128.68,
+        pillarHeight: 6.5,
+        stats: { companies: '380+개', share: '생산 34%', localRate: '84%' },
+        desc: '대한민국 지상무기체계(전차·자주포·장갑차·화포·가스터빈 엔진)의 핵심 생산기지로, K-방산 폴란드·호주·유럽 수출 물량의 중추를 담당하는 제1호 방산혁신클러스터입니다.',
+        orgs: ['한화에어로스페이스', '현대로템', 'SNT다이내믹스', 'STX엔진', '퍼스텍', '한국재료연구원'],
+        weapons: [
+          { name: 'K2 흑표 전차 & 파워팩', stage: '양산·수출' },
+          { name: 'K9A1/A2 자주포 & 천무 다연장로켓', stage: '양산·성능개량' },
+          { name: '레드백(Redback) 차세대 보병전투장갑차', stage: '수출·계열화' }
+        ],
+        supplyNote: '창원 엔진·변속기·차체 체계조립 ← 구미(사격통제/전자광학), 포항·울산(특수강 장갑판), 대전(ADD 탄두·추진 기술) 결합'
+      },
+      {
+        id: 'gumi',
+        name: '구미 (경북 국가산단)',
+        shortName: '구미 유도·방산전자 클러스터',
+        sector: 'guided',
+        sectorName: '유도무기 · 방산전자 · 레이더',
+        badge: '방산혁신클러스터 3호 (유무인복합·반도체)',
+        lat: 36.12,
+        lon: 128.35,
+        pillarHeight: 5.5,
+        stats: { companies: '195+개', share: '유도·전자 42%', localRate: '78%' },
+        desc: '정밀 유도무기 체계종합 및 AESA 레이더, 전자광학, 군용 통신·센서 등 방산전자 산업의 메카로 중동·글로벌 방공망 수출의 핵심 생산 거점입니다.',
+        orgs: ['LIG넥스원 구미하우스', '한화시스템 구미사업장', 'KEC', '구미전자정보기술원'],
+        weapons: [
+          { name: '천궁-II (M-SAM Block-II) 지대공 유도무기', stage: '양산·대규모 수출' },
+          { name: 'KF-21 탑재 AESA 레이더 & 전자광학 표적추적장비', stage: '양산 착수' },
+          { name: '보병용 중거리 유도무기 현궁 & 해궁', stage: '전력화·수출' }
+        ],
+        supplyNote: '구미 AESA 레이더·항전장비 → 사천(KF-21 탑재) / 구미 전투체계(CMS)·소나 → 울산·거제(이지스함·잠수함 탑재)'
+      },
+      {
+        id: 'sacheon',
+        name: '사천·진주 (경남 항공국가산단)',
+        shortName: '사천 항공우주·기품원',
+        sector: 'aero',
+        sectorName: '항공기 체계종합 · 품질보증',
+        badge: '항공우주 방산 메카 · 국방기술품질원 본원',
+        lat: 35.08,
+        lon: 128.08,
+        pillarHeight: 5.8,
+        stats: { companies: '140+개', share: '항공 72%', localRate: '68%' },
+        desc: '고정익 전투기·회전익 헬기 체계개발과 최종 조립이 이루어지는 대한민국 항공우주 방산의 심장부이며, 진주 혁신도시의 국방기술품질원(DTaQ)·국방기술진흥연구소(KRIT)와 직결됩니다.',
+        orgs: ['한국항공우주산업(KAI)', '국방기술품질원(DTaQ)', '국방기술진흥연구소(KRIT)', '한화에어로스페이스 사천', '켄코아에어로스페이스'],
+        weapons: [
+          { name: 'KF-21 보라매 한국형 초음속 전투기', stage: '초도양산 진행' },
+          { name: 'FA-50 경공격기 & KUH-1 수리온 기동헬기', stage: '양산·글로벌 수출' },
+          { name: 'LAH 소형무장헬기 & 상륙공격헬기(MAH)', stage: '양산·체계개발' }
+        ],
+        supplyNote: '사천 KAI 최종 체계종합 ← 창원(항공엔진 국산화), 구미(AESA 레이더·항전), 판교·대전(비행제어 SW·무장체계) 통합'
+      },
+      {
+        id: 'ulsan_geoje',
+        name: '울산·거제·진해 (동남권 해양방산)',
+        shortName: '울산·거제 함정·잠수함',
+        sector: 'naval',
+        sectorName: '수상함 · 잠수함 · 해양무기',
+        badge: '세계 최고 수준 특수선(함정·잠수함) 건조 거점',
+        lat: 35.15,
+        lon: 129.05,
+        pillarHeight: 5.7,
+        stats: { companies: '210+개', share: '함정 89%', localRate: '81%' },
+        desc: '이지스 구축함, 차세대 호위함, 3,000톤급 잠수함 등 전략 해양무기체계를 건조하고 글로벌 함정 MRO 및 수출 사업을 이끄는 세계 정상급 조선·해양방산 벨트입니다.',
+        orgs: ['HD현대중공업(울산)', '한화오션(거제)', 'HJ중공업(부산)', '범한퓨얼셀(창원/진해)', 'ADD 해양기술연구원(진해)'],
+        weapons: [
+          { name: '정조대왕급 이지스 구축함 (KDX-III Batch-II)', stage: '전력화·건조' },
+          { name: '장보고-III Batch-II 중형 잠수함', stage: '건조·시험평가' },
+          { name: '한국형 차기 구축함(KDDX) & 무인수상정', stage: '사업추진·개발' }
+        ],
+        supplyNote: '울산·거제 특수선 선체 건조 ← 구미(함정 전투체계·레이더), 창원(함포·수직발사대 KVLS·추진엔진) 탑재'
+      },
+      {
+        id: 'pangyo',
+        name: '성남 판교·용인·의왕 (수도권 남부)',
+        shortName: '판교 국방AI·SW·C4I',
+        sector: 'guided',
+        sectorName: '국방 AI · C4I · 위성통신 · 미래모빌리티',
+        badge: '수도권 첨단 R&D · AI·사이버·SW 융합 벨트',
+        lat: 37.39,
+        lon: 127.10,
+        pillarHeight: 5.1,
+        stats: { companies: '310+개', share: 'SW·AI 61%', localRate: '83%' },
+        desc: '체계기업들의 대규모 R&D 센터가 밀집한 수도권 첨단 연구벨트로, 전술정보통신(TICN), 지휘통제(C4I), 저궤도 군 위성통신, 국방 AI 및 무인기 연구를 주도합니다.',
+        orgs: ['한화시스템 판교/용인연구소', 'LIG넥스원 판교R&D센터', '현대로템 의왕연구소', '한화에어로스페이스 판교'],
+        weapons: [
+          { name: '전술정보통신체계(TICN) & 차세대 C4I', stage: '성능개량·양산' },
+          { name: '군 저궤도 위성통신체계 & 한국형 GPS(KPS)', stage: '체계개발' },
+          { name: '다목적 무인차량(UGV) & 국방 AI 지휘결심체계', stage: '신속시범·개발' }
+        ],
+        supplyNote: '판교·용인 핵심 SW·알고리즘 설계 → 구미·창원·사천 양산라인에 임베디드 탑재 및 대전 ADD와 공동 개발'
+      },
+      {
+        id: 'nonsan_gyeryong',
+        name: '논산·계룡 (충남 국방국가산단)',
+        shortName: '논산·계룡 국방산단·전력지원',
+        sector: 'command',
+        sectorName: '전력지원체계 · 군수혁신 · 3군 본부 연계',
+        badge: '방산혁신클러스터 4호(전북·충남 연계) · 국방국가산단',
+        lat: 36.24,
+        lon: 127.18,
+        pillarHeight: 4.5,
+        stats: { companies: '95+개', share: '전력지원 38%', localRate: '91%' },
+        desc: '육·해·공군 3군 본부(계룡대) 및 국방대학교와 인접한 대한민국 최초 국방전용 국가산업단지 권역으로, 전력지원체계·워리어플랫폼·국방 로봇 실증을 선도합니다.',
+        orgs: ['계룡대(육·해·공군 본부)', '국방대학교', '코리아디펜스인더스트리(KDI)', '충남국방벤처센터'],
+        weapons: [
+          { name: '차세대 개인전투체계 (워리어 플랫폼)', stage: '전력화·고도화' },
+          { name: '지능형 경계·감시 로봇 & 비무기 전력지원체계', stage: '실증·양산' },
+          { name: '230mm급 다연장 유도로켓 탄약 체계', stage: '양산' }
+        ],
+        supplyNote: '군 소요 제기(계룡대) ↔ 방위사업청 사업관리(대전) ↔ 실증 및 전력화 피드백 직결 루프'
+      },
+      {
+        id: 'anheung',
+        name: '태안 안흥·포천 (국방 종합시험장)',
+        shortName: '안흥 ADD 종합시험장',
+        sector: 'command',
+        sectorName: '국가 유도무기 · 화포 실사격 시험평가',
+        badge: '국방과학연구소(ADD) 국가 전략 시험평가 인프라',
+        lat: 36.68,
+        lon: 126.15,
+        pillarHeight: 4.3,
+        stats: { companies: '시험특화', share: '비행시험 90%', localRate: '100%' },
+        desc: '유도무기, 장사정 화포, 우주발사체 고체추진기관, 방공 레이더 등 전략 무기체계의 비행시험 및 실사격 시험평가가 수행되는 핵심 국가 시험 인프라도입니다.',
+        orgs: ['국방과학연구소(ADD) 안흥종합시험장', '방위사업청 시험평가국 연계', '체계기업 합동시험단'],
+        weapons: [
+          { name: '고체연료 우주발사체 & 전략 유도무기 비행시험', stage: '시험평가' },
+          { name: '장거리 함대공·지대공 요격시험', stage: '실사격 검증' },
+          { name: '차세대 대구경 화포 사거리 연장탄 시험', stage: '운용시험평가' }
+        ],
+        supplyNote: '대전·구미·창원 개발 시제장비 → 안흥 시험장 실사격·운용시험평가 통과 → 방위사업청 규격화 및 양산 승인'
+      },
+      {
+        id: 'jeonju_wanju',
+        name: '전주·완주·군산 (전북 방산소재 클러스터)',
+        shortName: '전북 탄소·복합소재 클러스터',
+        sector: 'aero',
+        sectorName: '방산 첨단소재 · 탄소복합재 · 특수차량',
+        badge: '방산혁신클러스터 (첨단 방산소재·부품 특화)',
+        lat: 35.85,
+        lon: 127.12,
+        pillarHeight: 4.1,
+        stats: { companies: '85+개', share: '복합소재 55%', localRate: '88%' },
+        desc: '유도무기 노즐·기체 구조물용 고강도 탄소섬유 복합재와 군용 전술트럭·특수차량 차체 소재를 공급하는 첨단 방산 소재·부품 특화 거점입니다.',
+        orgs: ['효성첨단소재(전주)', '한국탄소산업진흥원', '타타대우모빌리티(군산)', '전북국방벤처센터'],
+        weapons: [
+          { name: '유도탄·우주발사체용 고내열 탄소복합재 동체', stage: '소재 국산화' },
+          { name: '군용 중형표준차량·특수전술차량 플랫폼', stage: '양산·공급' }
+        ],
+        supplyNote: '전북 고강도 탄소복합소재 → 사천(항공기 동체), 구미·대전(유도탄 추진기관 케이스) 핵심 소재 공급'
+      },
+      {
+        id: 'gwangju_naju',
+        name: '광주·장성 (호남 군용차량·광전자 거점)',
+        shortName: '광주 군용기동·광전자',
+        sector: 'land',
+        sectorName: '군용 전술차량 · 광학·레이저',
+        badge: '군용 기동차량 생산 · 광융합 방산기술 거점',
+        lat: 35.16,
+        lon: 126.85,
+        pillarHeight: 4.4,
+        stats: { companies: '110+개', share: '전술차량 92%', localRate: '89%' },
+        desc: '한국군 제식 소형전술차량(KLTV) 및 차세대 중형표준차량의 독점 생산기지이자, 광전자·고출력 레이저 대공무기 핵심 광학부품 연구 거점입니다.',
+        orgs: ['기아 특수차량사업부(광주)', '한국광기술원', '광주국방벤처센터'],
+        weapons: [
+          { name: '한국형 소형전술차량 (KLTV 현마) & 수출형', stage: '양산·수출' },
+          { name: '차세대 군용 중형표준차량 (2.5톤/5톤)', stage: '양산 착수' },
+          { name: '레이저 대공무기(Block-I/II) 광학 모듈', stage: '개발·전력화' }
+        ],
+        supplyNote: '광주 전술차량 샤시 → 구미·창원(무장·방공레이더·통신쉘터 탑재) → 야전부대 및 폴란드·중남미 수출'
+      }
+    ];
+
+    // 공급망 & R&D 협력 네트워크 아크 데이터
+    const SUPPLY_ARCS = [
+      { from: 'daejeon', to: 'changwon', color: 0x00e5ff, label: 'ADD 기동·화력 R&D 이전' },
+      { from: 'daejeon', to: 'gumi',     color: 0xb388ff, label: '유도·레이더 체계개발' },
+      { from: 'daejeon', to: 'sacheon',  color: 0x00e5ff, label: '항공우주·감항인증·품질' },
+      { from: 'daejeon', to: 'ulsan_geoje', color: 0x2979ff, label: '함정·잠수함 사업관리' },
+      { from: 'daejeon', to: 'pangyo',   color: 0xffb300, label: '국방 AI·위성·C4I 합동연구' },
+      { from: 'daejeon', to: 'anheung',  color: 0xffb300, label: '국가 전략무기 비행시험' },
+      { from: 'daejeon', to: 'nonsan_gyeryong', color: 0xffb300, label: '3군 소요-사업관리 직결' },
+      { from: 'gumi',    to: 'sacheon',  color: 0xb388ff, label: 'KF-21 AESA 레이더·항전 공급' },
+      { from: 'changwon',to: 'sacheon',  color: 0x00e676, label: '항공기 엔진·유압부품 공급' },
+      { from: 'gumi',    to: 'ulsan_geoje', color: 0x2979ff, label: '함정 전투체계(CMS)·소나 공급' },
+      { from: 'changwon',to: 'ulsan_geoje', color: 0x00e676, label: '함포·수직발사관(KVLS)·추진기' },
+      { from: 'jeonju_wanju', to: 'sacheon', color: 0x00e5ff, label: '항공·유도탄 탄소복합소재' },
+      { from: 'gwangju_naju', to: 'gumi', color: 0x00e676, label: '전술차량 플랫폼-유도무기 결합' }
+    ];
+
+    // =========================================================================
+    // 2. 대한민국 시도별 정밀 3D 폴리곤 데이터 (인터넷/업무망 완전 호환 내장형)
+    // =========================================================================
+    const KOREA_PROVINCES = [
+      {
+        name: '경기도·서울·인천',
+        hubScore: 0.78,
+        color: 0x12325e,
+        coords: [
+          [126.45, 37.45], [126.62, 37.78], [126.92, 37.98], [127.20, 38.18],
+          [127.55, 38.05], [127.72, 37.75], [127.76, 37.45], [127.62, 37.18],
+          [127.38, 36.96], [126.82, 36.98], [126.65, 37.22]
+        ]
+      },
+      {
+        name: '강원특별자치도',
+        hubScore: 0.45,
+        color: 0x0e274b,
+        coords: [
+          [127.20, 38.18], [127.65, 38.32], [128.36, 38.55], [128.62, 38.18],
+          [128.92, 37.75], [129.36, 37.15], [128.88, 37.08], [128.25, 37.16],
+          [127.76, 37.45], [127.72, 37.75], [127.55, 38.05]
+        ]
+      },
+      {
+        name: '충청남도·세종',
+        hubScore: 0.82,
+        color: 0x153969,
+        coords: [
+          [126.12, 36.68], [126.42, 36.95], [126.82, 36.98], [127.38, 36.96],
+          [127.35, 36.52], [127.26, 36.32], [127.32, 36.05], [126.65, 36.02],
+          [126.48, 36.35], [126.18, 36.52]
+        ]
+      },
+      {
+        name: '대전광역시 (방위사업청)',
+        hubScore: 1.0,
+        color: 0x1e5294,
+        coords: [
+          [127.26, 36.46], [127.52, 36.48], [127.54, 36.24], [127.28, 36.22]
+        ]
+      },
+      {
+        name: '충청북도',
+        hubScore: 0.62,
+        color: 0x112d55,
+        coords: [
+          [127.38, 36.96], [127.62, 37.18], [128.25, 37.16], [128.60, 37.02],
+          [128.45, 36.75], [127.95, 36.55], [127.85, 36.15], [127.54, 36.24],
+          [127.52, 36.48], [127.35, 36.52]
+        ]
+      },
+      {
+        name: '전북특별자치도',
+        hubScore: 0.68,
+        color: 0x12325e,
+        coords: [
+          [126.52, 35.98], [126.65, 36.02], [127.32, 36.05], [127.85, 36.02],
+          [127.78, 35.52], [127.42, 35.38], [126.62, 35.42], [126.45, 35.72]
+        ]
+      },
+      {
+        name: '전라남도·광주광역시',
+        hubScore: 0.72,
+        color: 0x133563,
+        coords: [
+          [126.25, 35.25], [126.62, 35.42], [127.42, 35.38], [127.78, 35.22],
+          [127.76, 34.72], [127.22, 34.52], [126.55, 34.35], [126.12, 34.62],
+          [126.15, 34.98]
+        ]
+      },
+      {
+        name: '경상북도·대구광역시',
+        hubScore: 0.88,
+        color: 0x173e73,
+        coords: [
+          [128.60, 37.02], [128.88, 37.08], [129.36, 37.15], [129.46, 36.55],
+          [129.55, 36.02], [129.32, 35.68], [128.75, 35.62], [128.15, 35.78],
+          [127.85, 36.02], [127.85, 36.15], [127.95, 36.55], [128.45, 36.75]
+        ]
+      },
+      {
+        name: '경상남도·부산·울산',
+        hubScore: 0.98,
+        color: 0x1b4885,
+        coords: [
+          [127.78, 35.52], [128.15, 35.78], [128.75, 35.62], [129.32, 35.68],
+          [129.42, 35.45], [129.22, 35.12], [128.72, 34.82], [128.32, 34.75],
+          [127.78, 34.72], [127.78, 35.22]
+        ]
+      },
+      {
+        name: '제주특별자치도',
+        hubScore: 0.50,
+        color: 0x102c54,
+        coords: [
+          [126.18, 33.28], [126.35, 33.48], [126.75, 33.55], [126.95, 33.45],
+          [126.82, 33.24], [126.42, 33.21]
+        ]
+      },
+      {
+        name: '울릉도',
+        hubScore: 0.55,
+        color: 0x16447a,
+        coords: [
+          [130.80, 37.54], [130.94, 37.55], [130.95, 37.45], [130.81, 37.44]
+        ]
+      },
+      {
+        name: '독도 (대한민국 영토)',
+        hubScore: 0.65,
+        color: 0x00acc1,
+        coords: [
+          [131.82, 37.27], [131.92, 37.27], [131.92, 37.21], [131.82, 37.21]
+        ]
+      }
+    ];
+
+    // 위경도 -> 3D 월드 좌표 변환 함수 (중심: 한반도 중부 127.8E, 36.2N)
+    const CENTER_LON = 127.85;
+    const CENTER_LAT = 36.15;
+    const SCALE_LON = 11.2;
+    const SCALE_LAT = 13.6;
+
+    function geoToWorld(lon, lat) {
+      const x = (lon - CENTER_LON) * SCALE_LON;
+      const z = -(lat - CENTER_LAT) * SCALE_LAT;
+      return new THREE.Vector3(x, 0, z);
+    }
+
+    // =========================================================================
+    // 3. Three.js 3D 씬 초기화
+    // =========================================================================
+    const container = document.getElementById('canvas-container');
+    const labelsContainer = document.getElementById('labels-container');
+    const tooltip = document.getElementById('hover-tooltip');
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x040914, 0.0085);
+
+    const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 500);
+    const DEFAULT_CAM_POS = new THREE.Vector3(0, 58, 62);
+    const DEFAULT_TARGET = new THREE.Vector3(0, 0, 2);
+    camera.position.copy(DEFAULT_CAM_POS);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.target.copy(DEFAULT_TARGET);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.maxPolarAngle = Math.PI / 2.15;
+    controls.minDistance = 16;
+    controls.maxDistance = 125;
+
+    // 조명 설정
+    const ambientLight = new THREE.AmbientLight(0x8bb8ff, 0.75);
+    scene.add(ambientLight);
+
+    const dirLight1 = new THREE.DirectionalLight(0x00e5ff, 0.9);
+    dirLight1.position.set(35, 65, 45);
+    scene.add(dirLight1);
+
+    const dirLight2 = new THREE.DirectionalLight(0x2979ff, 0.6);
+    dirLight2.position.set(-45, 40, -35);
+    scene.add(dirLight2);
+
+    // =========================================================================
+    // 4. 전술 레이더 바닥 그리드 & 홀로그램 링 생성
+    // =========================================================================
+    const tacticalFloorGroup = new THREE.Group();
+    scene.add(tacticalFloorGroup);
+
+    const gridHelper = new THREE.GridHelper(160, 64, 0x00e5ff, 0x0b2548);
+    gridHelper.position.y = -0.3;
+    gridHelper.material.transparent = true;
+    gridHelper.material.opacity = 0.35;
+    tacticalFloorGroup.add(gridHelper);
+
+    // 회전하는 전술 컴퍼스 링
+    function createTacticalRing(radius, tube, color, opacity, dash = false) {
+      const geo = new THREE.RingGeometry(radius, radius + tube, 96);
+      geo.rotateX(-Math.PI / 2);
+      const mat = new THREE.MeshBasicMaterial({
+        color,
+        transparent: true,
+        opacity,
+        side: THREE.DoubleSide
+      });
+      return new THREE.Mesh(geo, mat);
+    }
+
+    const outerRing1 = createTacticalRing(34, 0.18, 0x00e5ff, 0.35);
+    outerRing1.position.y = -0.2;
+    tacticalFloorGroup.add(outerRing1);
+
+    const outerRing2 = createTacticalRing(42, 0.09, 0x2979ff, 0.25);
+    outerRing2.position.y = -0.2;
+    tacticalFloorGroup.add(outerRing2);
+
+    // 레이더 스윕 원판
+    const radarGeo = new THREE.CircleGeometry(34, 64);
+    radarGeo.rotateX(-Math.PI / 2);
+    const radarMat = new THREE.MeshBasicMaterial({
+      color: 0x00e5ff,
+      transparent: true,
+      opacity: 0.03
+    });
+    const radarDisk = new THREE.Mesh(radarGeo, radarMat);
+    radarDisk.position.y = -0.25;
+    tacticalFloorGroup.add(radarDisk);
+
+    // =========================================================================
+    // 5. 대한민국 시도 3D 입체 지도(Extrude) 생성
+    // =========================================================================
+    const mapGroup = new THREE.Group();
+    scene.add(mapGroup);
+
+    const provinceMeshes = [];
+    const clickableMeshes = [];
+    let extrudeBoostMode = false;
+
+    function buildKorea3DMap() {
+      KOREA_PROVINCES.forEach((prov) => {
+        const shape = new THREE.Shape();
+        prov.coords.forEach((pt, idx) => {
+          const x = (pt[0] - CENTER_LON) * SCALE_LON;
+          const y = (pt[1] - CENTER_LAT) * SCALE_LAT;
+          if (idx === 0) shape.moveTo(x, y);
+          else shape.lineTo(x, y);
+        });
+        shape.closePath();
+
+        addExtrudedProvinceMesh(shape, prov.name, prov.hubScore, prov.color);
+      });
+
+      // 인터넷 연결 시 고정밀 대한민국 17개 시도 행정구역 GeoJSON 자동 로드 (오프라인/업무망에서는 내장 폴리곤 유지)
+      loadHighResKoreaGeoJSON();
+    }
+
+    function addExtrudedProvinceMesh(shapeOrShapes, name, hubScore, color) {
+      const baseDepth = 1.25;
+      const extrudeSettings = {
+        depth: baseDepth,
+        bevelEnabled: true,
+        bevelSegments: 2,
+        steps: 1,
+        bevelSize: 0.06,
+        bevelThickness: 0.08
+      };
+
+      const geometry = new THREE.ExtrudeGeometry(shapeOrShapes, extrudeSettings);
+      geometry.rotateX(-Math.PI / 2);
+
+      const material = new THREE.MeshStandardMaterial({
+        color: color,
+        emissive: 0x051833,
+        roughness: 0.38,
+        metalness: 0.45,
+        transparent: true,
+        opacity: 0.94
+      });
+
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.userData = {
+        type: 'province',
+        name: name,
+        hubScore: hubScore,
+        baseColor: color,
+        targetScaleY: extrudeBoostMode ? (0.7 + hubScore * 2.5) : 1.0
+      };
+
+      const edgesGeo = new THREE.EdgesGeometry(geometry, 28);
+      const edgesMat = new THREE.LineBasicMaterial({
+        color: 0x00e5ff,
+        transparent: true,
+        opacity: 0.55
+      });
+      const wireframe = new THREE.LineSegments(edgesGeo, edgesMat);
+      mesh.add(wireframe);
+
+      mapGroup.add(mesh);
+      provinceMeshes.push(mesh);
+      clickableMeshes.push(mesh);
+    }
+
+    async function loadHighResKoreaGeoJSON() {
+      const GEOJSON_URL = 'https://raw.githubusercontent.com/southkorea/southkorea-maps/master/kostat/2018/json/skorea-provinces-2018-geo.json';
+      const PROV_META = {
+        '서울특별시': { score: 0.75, color: 0x153b6e },
+        '부산광역시': { score: 0.88, color: 0x194682 },
+        '대구광역시': { score: 0.72, color: 0x153869 },
+        '인천광역시': { score: 0.70, color: 0x133463 },
+        '광주광역시': { score: 0.76, color: 0x153a6d },
+        '대전광역시': { score: 1.00, color: 0x215ca8 },
+        '울산광역시': { score: 0.94, color: 0x1c4d8f },
+        '세종특별자치시': { score: 0.80, color: 0x174078 },
+        '경기도': { score: 0.84, color: 0x143666 },
+        '강원도': { score: 0.48, color: 0x0e274b },
+        '충청북도': { score: 0.64, color: 0x12305c },
+        '충청남도': { score: 0.85, color: 0x163d73 },
+        '전라북도': { score: 0.70, color: 0x133361 },
+        '전라남도': { score: 0.68, color: 0x12315e },
+        '경상북도': { score: 0.90, color: 0x18427a },
+        '경상남도': { score: 0.98, color: 0x1d4f91 },
+        '제주특별자치도': { score: 0.50, color: 0x102c54 }
+      };
+
+      try {
+        const res = await fetch(GEOJSON_URL);
+        if (!res.ok) return;
+        const geojson = await res.json();
+        if (!geojson || !geojson.features) return;
+
+        // 기존 내장 폴리곤(독도·울릉도 제외)을 제거하고 고정밀 시도 경계로 교체
+        for (let i = provinceMeshes.length - 1; i >= 0; i--) {
+          const m = provinceMeshes[i];
+          if (!m.userData.name.includes('독도') && !m.userData.name.includes('울릉도')) {
+            mapGroup.remove(m);
+            const cIdx = clickableMeshes.indexOf(m);
+            if (cIdx !== -1) clickableMeshes.splice(cIdx, 1);
+            provinceMeshes.splice(i, 1);
+          }
+        }
+
+        geojson.features.forEach((feature) => {
+          const name = feature.properties.name || '대한민국';
+          const meta = PROV_META[name] || { score: 0.65, color: 0x133463 };
+          const geom = feature.geometry;
+          const shapes = [];
+
+          const polygons = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
+          polygons.forEach((poly) => {
+            const outerRing = poly[0];
+            if (!outerRing || outerRing.length < 4) return;
+            const shape = new THREE.Shape();
+            outerRing.forEach((pt, idx) => {
+              const x = (pt[0] - CENTER_LON) * SCALE_LON;
+              const y = (pt[1] - CENTER_LAT) * SCALE_LAT;
+              if (idx === 0) shape.moveTo(x, y);
+              else shape.lineTo(x, y);
+            });
+            shapes.push(shape);
+          });
+
+          if (shapes.length > 0) {
+            addExtrudedProvinceMesh(shapes, name, meta.score, meta.color);
+          }
+        });
+      } catch (err) {
+        // 오프라인/폐쇄망 환경일 경우 내장 폴리곤 그대로 사용
+      }
+    }
+
+    buildKorea3DMap();
+
+    // 독도·울릉도 해역 영토 표식 링 추가
+    const dokdoPos = geoToWorld(131.87, 37.24);
+    const dokdoBeacon = createTacticalRing(1.5, 0.12, 0x00e5ff, 0.8);
+    dokdoBeacon.position.set(dokdoPos.x, 0.1, dokdoPos.z);
+    scene.add(dokdoBeacon);
+
+    const dokdoLabelEl = document.createElement('div');
+    dokdoLabelEl.className = 'province-label';
+    dokdoLabelEl.style.color = '#00e5ff';
+    dokdoLabelEl.style.fontWeight = '800';
+    dokdoLabelEl.innerHTML = '독도 · 동해 영토수호';
+    labelsContainer.appendChild(dokdoLabelEl);
+
+    // =========================================================================
+    // 6. 방산혁신클러스터 & 체계기업 3D 기둥(Pillar) 및 비콘 생성
+    // =========================================================================
+    const hubsGroup = new THREE.Group();
+    scene.add(hubsGroup);
+
+    const hubObjects = {};
+
+    DEFENSE_HUBS.forEach((hub) => {
+      const pos = geoToWorld(hub.lat ? hub.lon : 127.5, hub.lat);
+      const baseTopY = 1.35;
+      const group = new THREE.Group();
+      group.position.set(pos.x, baseTopY, pos.z);
+
+      const colorHex = SECTOR_COLORS[hub.sector];
+
+      // 1) 바닥 펄스 링
+      const ringGeo = new THREE.RingGeometry(0.45, 0.85, 32);
+      ringGeo.rotateX(-Math.PI / 2);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: colorHex,
+        transparent: true,
+        opacity: 0.85,
+        side: THREE.DoubleSide
+      });
+      const pulseRing = new THREE.Mesh(ringGeo, ringMat);
+      pulseRing.position.y = 0.05;
+      group.add(pulseRing);
+
+      // 2) 육각 3D 빛 기둥 (Pillar)
+      const pillarGeo = new THREE.CylinderGeometry(0.36, 0.52, hub.pillarHeight, 6);
+      pillarGeo.translate(0, hub.pillarHeight / 2, 0);
+      const pillarMat = new THREE.MeshStandardMaterial({
+        color: colorHex,
+        emissive: colorHex,
+        emissiveIntensity: 0.55,
+        roughness: 0.2,
+        metalness: 0.3,
+        transparent: true,
+        opacity: 0.88
+      });
+      const pillarMesh = new THREE.Mesh(pillarGeo, pillarMat);
+      pillarMesh.userData = { type: 'hub', hubId: hub.id };
+      group.add(pillarMesh);
+      clickableMeshes.push(pillarMesh);
+
+      // 3) 상단 코어 다이아몬드(Octahedron) 비콘
+      const diamondGeo = new THREE.OctahedronGeometry(0.55, 0);
+      const diamondMat = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        wireframe: false
+      });
+      const diamondMesh = new THREE.Mesh(diamondGeo, diamondMat);
+      diamondMesh.position.y = hub.pillarHeight + 0.65;
+      diamondMesh.userData = { type: 'hub', hubId: hub.id };
+      group.add(diamondMesh);
+      clickableMeshes.push(diamondMesh);
+
+      // 4) HTML 플로팅 라벨 생성
+      const labelEl = document.createElement('div');
+      labelEl.className = 'map-label';
+      labelEl.innerHTML = `
+        <div class="label-card" id="label-card-${hub.id}" style="border-color:${SECTOR_HEX[hub.sector]}">
+          <span class="dot" style="background:${SECTOR_HEX[hub.sector]}"></span>
+          <div>
+            <div class="label-name">${hub.shortName}</div>
+            <div class="label-sub" style="color:${SECTOR_HEX[hub.sector]}">${hub.stats.companies} · 국산화 ${hub.stats.localRate}</div>
+          </div>
+        </div>
+        <div class="label-stem" style="background:linear-gradient(to bottom, ${SECTOR_HEX[hub.sector]}, transparent)"></div>
+      `;
+      labelEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectHub(hub.id, true);
+      });
+      labelsContainer.appendChild(labelEl);
+
+      hubsGroup.add(group);
+      hubObjects[hub.id] = {
+        hub,
+        group,
+        pulseRing,
+        pillarMesh,
+        diamondMesh,
+        labelEl,
+        worldPos: new THREE.Vector3(pos.x, baseTopY + hub.pillarHeight + 0.9, pos.z)
+      };
+    });
+
+    // =========================================================================
+    // 7. 3D 공급망 & R&D 협력 네트워크 아크(Arc) 및 광자 파티클 생성
+    // =========================================================================
+    const arcsGroup = new THREE.Group();
+    scene.add(arcsGroup);
+
+    const animatedPulses = [];
+
+    function buildSupplyArcs() {
+      SUPPLY_ARCS.forEach((arc) => {
+        const fromObj = hubObjects[arc.from];
+        const toObj = hubObjects[arc.to];
+        if (!fromObj || !toObj) return;
+
+        const start = new THREE.Vector3(fromObj.group.position.x, 1.8, fromObj.group.position.z);
+        const end = new THREE.Vector3(toObj.group.position.x, 1.8, toObj.group.position.z);
+        const dist = start.distanceTo(end);
+
+        const mid = start.clone().lerp(end, 0.5);
+        mid.y += Math.max(4.5, dist * 0.42);
+
+        const curve = new THREE.QuadraticBezierCurve3(start, mid, end);
+        const points = curve.getPoints(48);
+        const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+
+        const lineMat = new THREE.LineBasicMaterial({
+          color: arc.color,
+          transparent: true,
+          opacity: 0.42
+        });
+        const arcLine = new THREE.Line(lineGeo, lineMat);
+        arcLine.userData = { from: arc.from, to: arc.to };
+        arcsGroup.add(arcLine);
+
+        // 아크 위를 이동하는 에너지 광자 구체
+        const sphereGeo = new THREE.SphereGeometry(0.24, 12, 12);
+        const sphereMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const pulseSphere = new THREE.Mesh(sphereGeo, sphereMat);
+        arcsGroup.add(pulseSphere);
+
+        animatedPulses.push({
+          mesh: pulseSphere,
+          line: arcLine,
+          curve,
+          progress: Math.random(),
+          speed: 0.004 + Math.random() * 0.003,
+          from: arc.from,
+          to: arc.to
+        });
+      });
+    }
+
+    buildSupplyArcs();
+
+    // =========================================================================
+    // 8. UI 렌더링 및 상호작용 로직
+    // =========================================================================
+    let selectedHubId = 'daejeon';
+    let activeSector = 'all';
+    let cameraAnim = null;
+    let autoTourTimer = null;
+    let autoTourIndex = 0;
+
+    // 좌측 거점 리스트 렌더링
+    function renderHubList() {
+      const listEl = document.getElementById('hub-list');
+      listEl.innerHTML = '';
+
+      DEFENSE_HUBS.forEach((hub) => {
+        if (activeSector !== 'all' && hub.sector !== activeSector) return;
+
+        const item = document.createElement('div');
+        item.className = `hub-item ${hub.id === selectedHubId ? 'selected' : ''}`;
+        item.innerHTML = `
+          <div class="hub-item-left">
+            <span class="dot" style="background:${SECTOR_HEX[hub.sector]}"></span>
+            <div>
+              <div class="hub-name">${hub.shortName}</div>
+              <div class="hub-role">${hub.sectorName}</div>
+            </div>
+          </div>
+          <span class="hub-tag">${hub.stats.companies}</span>
+        `;
+        item.addEventListener('click', () => selectHub(hub.id, true));
+        listEl.appendChild(item);
+      });
+    }
+
+    // 우측 상세 브리핑 패널 업데이트
+    function renderDetailCard(hub) {
+      const card = document.getElementById('detail-card');
+      const color = SECTOR_HEX[hub.sector];
+
+      card.innerHTML = `
+        <div class="cluster-badge" style="border-color:${color}; color:${color}; background:${color}22;">
+          ${hub.badge}
+        </div>
+        <div class="detail-header">
+          <div>
+            <div class="detail-title">${hub.name}</div>
+            <div class="detail-subtitle">${hub.desc}</div>
+          </div>
+        </div>
+
+        <div class="metric-boxes">
+          <div class="metric-box">
+            <div class="m-label">입주·연계 기업</div>
+            <div class="m-val" style="color:${color}">${hub.stats.companies}</div>
+          </div>
+          <div class="metric-box">
+            <div class="m-label">분야별 비중</div>
+            <div class="m-val">${hub.stats.share}</div>
+          </div>
+          <div class="metric-box">
+            <div class="m-label">국산화 지표</div>
+            <div class="m-val" style="color:var(--emerald)">${hub.stats.localRate}</div>
+          </div>
+        </div>
+
+        <div class="section-label">
+          <span class="dot" style="background:${color}"></span>
+          주요 체계기업 · 국방 연구기관
+        </div>
+        <div class="tag-cloud">
+          ${hub.orgs.map(o => `<span class="company-tag">${o}</span>`).join('')}
+        </div>
+
+        <div class="section-label" style="margin-top:14px;">
+          <span class="dot" style="background:var(--emerald)"></span>
+          핵심 연구개발·양산 무기체계
+        </div>
+        <div class="weapon-list">
+          ${hub.weapons.map(w => `
+            <div class="weapon-item" style="border-left-color:${color}">
+              <strong>${w.name}</strong>
+              <span class="w-stage">${w.stage}</span>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="supply-chain-note">
+          <strong style="color:var(--cyan);">[공급망·사업관리 연계]</strong><br/>
+          ${hub.supplyNote}
+        </div>
+      `;
+    }
+
+    // 거점 선택 및 3D 카메라 Fly-To 이동
+    function selectHub(hubId, flyCamera = true) {
+      selectedHubId = hubId;
+      const obj = hubObjects[hubId];
+      if (!obj) return;
+
+      renderHubList();
+      renderDetailCard(obj.hub);
+
+      // 라벨 하이라이트 갱신
+      Object.keys(hubObjects).forEach((id) => {
+        const cardEl = document.getElementById(`label-card-${id}`);
+        if (cardEl) {
+          cardEl.classList.toggle('selected', id === hubId);
+        }
+      });
+
+      if (flyCamera) {
+        const targetPos = new THREE.Vector3(obj.group.position.x, 1.5, obj.group.position.z);
+        const camOffset = new THREE.Vector3(obj.group.position.x * 0.45, 29, obj.group.position.z + 27);
+        animateCameraTo(camOffset, targetPos);
+      }
+    }
+
+    function animateCameraTo(newPos, newTarget) {
+      cameraAnim = {
+        startPos: camera.position.clone(),
+        endPos: newPos.clone(),
+        startTarget: controls.target.clone(),
+        endTarget: newTarget.clone(),
+        progress: 0
+      };
+    }
+
+    // 분야별 필터링
+    document.querySelectorAll('#sector-filters .filter-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#sector-filters .filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeSector = btn.dataset.sector;
+
+        Object.values(hubObjects).forEach((obj) => {
+          const visible = (activeSector === 'all' || obj.hub.sector === activeSector);
+          obj.group.visible = visible;
+          obj.labelEl.style.display = visible ? 'block' : 'none';
+        });
+
+        renderHubList();
+      });
+    });
+
+    // 버튼 제어: 공급망 아크 토글
+    const btnArcs = document.getElementById('btn-arcs');
+    const pillArcs = document.getElementById('pill-arcs');
+    btnArcs.addEventListener('click', () => {
+      arcsGroup.visible = !arcsGroup.visible;
+      btnArcs.classList.toggle('active', arcsGroup.visible);
+      pillArcs.textContent = arcsGroup.visible ? 'ON' : 'OFF';
+    });
+
+    // 버튼 제어: 시도별 방산 집적도 3D 입체고도 강조
+    const btnExtrude = document.getElementById('btn-extrude');
+    const pillExtrude = document.getElementById('pill-extrude');
+    btnExtrude.addEventListener('click', () => {
+      extrudeBoostMode = !extrudeBoostMode;
+      btnExtrude.classList.toggle('active', extrudeBoostMode);
+      pillExtrude.textContent = extrudeBoostMode ? '집적도 비례' : '기본';
+
+      provinceMeshes.forEach((m) => {
+        m.userData.targetScaleY = extrudeBoostMode ? (0.7 + m.userData.hubScore * 2.5) : 1.0;
+      });
+    });
+
+    // 버튼 제어: 전국 거점 자동 브리핑 투어
+    const btnTour = document.getElementById('btn-tour');
+    const pillTour = document.getElementById('pill-tour');
+    btnTour.addEventListener('click', () => {
+      if (autoTourTimer) {
+        clearInterval(autoTourTimer);
+        autoTourTimer = null;
+        btnTour.classList.remove('active');
+        pillTour.textContent = 'OFF';
+      } else {
+        btnTour.classList.add('active');
+        pillTour.textContent = '진행중';
+        autoTourIndex = 0;
+        selectHub(DEFENSE_HUBS[autoTourIndex].id, true);
+        autoTourTimer = setInterval(() => {
+          autoTourIndex = (autoTourIndex + 1) % DEFENSE_HUBS.length;
+          selectHub(DEFENSE_HUBS[autoTourIndex].id, true);
+        }, 4200);
+      }
+    });
+
+    // 버튼 제어: 울릉도·독도 이동
+    document.getElementById('btn-dokdo').addEventListener('click', () => {
+      const target = new THREE.Vector3(dokdoPos.x - 4, 1.0, dokdoPos.z);
+      const camPos = new THREE.Vector3(dokdoPos.x - 6, 22, dokdoPos.z + 20);
+      animateCameraTo(camPos, target);
+    });
+
+    // 버튼 제어: 카메라 초기화
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      animateCameraTo(DEFAULT_CAM_POS, DEFAULT_TARGET);
+    });
+
+    // =========================================================================
+    // 9. 마우스 레이캐스팅 (클릭 및 호버 이벤트)
+    // =========================================================================
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    let hoveredProvince = null;
+
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(clickableMeshes, false);
+
+      if (hoveredProvince) {
+        hoveredProvince.material.emissive.setHex(0x051833);
+        hoveredProvince = null;
+      }
+
+      if (intersects.length > 0) {
+        const hit = intersects[0].object;
+        if (hit.userData.type === 'hub') {
+          document.body.style.cursor = 'pointer';
+          tooltip.style.display = 'none';
+        } else if (hit.userData.type === 'province') {
+          document.body.style.cursor = 'pointer';
+          hoveredProvince = hit;
+          hit.material.emissive.setHex(0x164c88);
+          tooltip.style.display = 'block';
+          tooltip.style.left = `${e.clientX + 14}px`;
+          tooltip.style.top = `${e.clientY + 14}px`;
+          tooltip.innerHTML = `<strong>${hit.userData.name}</strong><br/><span style="color:var(--cyan)">방산 생태계 집적지수: ${Math.round(hit.userData.hubScore * 100)}점</span>`;
+        }
+      } else {
+        document.body.style.cursor = 'default';
+        tooltip.style.display = 'none';
+      }
+    });
+
+    window.addEventListener('click', (e) => {
+      if (e.target.closest('.left-panel') || e.target.closest('.right-panel') || e.target.closest('.top-header')) {
+        return;
+      }
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(clickableMeshes, false);
+      if (intersects.length > 0) {
+        const hit = intersects[0].object;
+        if (hit.userData.type === 'hub') {
+          selectHub(hit.userData.hubId, true);
+        }
+      }
+    });
+
+    // =========================================================================
+    // 10. 실시간 애니메이션 루프 & 2D 투영 좌표 동기화
+    // =========================================================================
+    const clock = new THREE.Clock();
+
+    function updateHTMLOverlayPositions() {
+      const widthHalf = window.innerWidth / 2;
+      const heightHalf = window.innerHeight / 2;
+
+      Object.values(hubObjects).forEach((obj) => {
+        if (!obj.group.visible) return;
+        const pos = obj.worldPos.clone();
+        pos.project(camera);
+
+        if (pos.z > 1) {
+          obj.labelEl.style.opacity = '0';
+          return;
+        }
+        const x = (pos.x * widthHalf) + widthHalf;
+        const y = -(pos.y * heightHalf) + heightHalf;
+        obj.labelEl.style.opacity = '1';
+        obj.labelEl.style.left = `${x}px`;
+        obj.labelEl.style.top = `${y}px`;
+      });
+
+      // 독도 라벨 위치 업데이트
+      const dPos = new THREE.Vector3(dokdoPos.x, 1.8, dokdoPos.z);
+      dPos.project(camera);
+      if (dPos.z <= 1) {
+        dokdoLabelEl.style.left = `${(dPos.x * widthHalf) + widthHalf}px`;
+        dokdoLabelEl.style.top = `${-(dPos.y * heightHalf) + heightHalf + 18}px`;
+      }
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const elapsed = clock.getElapsedTime();
+
+      // 1) 카메라 Fly-To 보간
+      if (cameraAnim) {
+        cameraAnim.progress += 0.04;
+        const t = 1 - Math.pow(1 - Math.min(cameraAnim.progress, 1), 3);
+        camera.position.lerpVectors(cameraAnim.startPos, cameraAnim.endPos, t);
+        controls.target.lerpVectors(cameraAnim.startTarget, cameraAnim.endTarget, t);
+        if (cameraAnim.progress >= 1) cameraAnim = null;
+      }
+
+      controls.update();
+
+      // 2) 거점 비콘 회전 및 펄스 링 애니메이션
+      Object.values(hubObjects).forEach((obj, idx) => {
+        obj.diamondMesh.rotation.y = elapsed * 1.8 + idx;
+        obj.diamondMesh.position.y = obj.hub.pillarHeight + 0.65 + Math.sin(elapsed * 3 + idx) * 0.14;
+
+        const scale = 1 + ((elapsed * 0.9 + idx * 0.25) % 1) * 1.35;
+        obj.pulseRing.scale.set(scale, scale, 1);
+        obj.pulseRing.material.opacity = Math.max(0, 0.9 - ((scale - 1) / 1.35) * 0.9);
+      });
+
+      // 3) 시도 폴리곤 고도 보간 애니메이션
+      provinceMeshes.forEach((mesh) => {
+        mesh.scale.y += (mesh.userData.targetScaleY - mesh.scale.y) * 0.08;
+      });
+
+      // 4) 공급망 아크 광자 이동 애니메이션
+      if (arcsGroup.visible) {
+        animatedPulses.forEach((p) => {
+          p.progress = (p.progress + p.speed) % 1;
+          const pt = p.curve.getPointAt(p.progress);
+          p.mesh.position.copy(pt);
+        });
+      }
+
+      // 5) 전술 링 미세 회전
+      outerRing1.rotation.y = elapsed * 0.08;
+      outerRing2.rotation.y = -elapsed * 0.05;
+
+      updateHTMLOverlayPositions();
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // 초기 실행: 대전(방위사업청 본청) 기본 선택 (전체 조망 유지)
+    selectHub('daejeon', false);
+    animate();
+  </script>
+</body>
+</html>
